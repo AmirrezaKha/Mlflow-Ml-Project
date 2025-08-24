@@ -25,11 +25,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set lowercase username
+        id: lowername
+        run: echo "username_lc=${GITHUB_ACTOR,,}" >> $GITHUB_OUTPUT
+
       - name: Build and push image
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ghcr.io/${{ github.actor }}/mlflow-trainer:latest
+          tags: ghcr.io/${{ steps.lowername.outputs.username_lc }}/mlflow-trainer:latest
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
@@ -47,7 +51,7 @@ jobs:
 
       - name: Replace image in K8s manifests
         run: |
-          sed -i "s|{{IMAGE_PLACEHOLDER}}|ghcr.io/${{ github.actor }}/mlflow-trainer:latest|g" k8s/trainer-job.yaml
+          sed -i "s|{{IMAGE_PLACEHOLDER}}|ghcr.io/${{ steps.lowername.outputs.username_lc }}/mlflow-trainer:latest|g" k8s/trainer-job.yaml
 
       - name: Apply K8s manifests
         run: |
