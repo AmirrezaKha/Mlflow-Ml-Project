@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: trainer-job
+spec:
+  template:
+    spec:
+      containers:
+        - name: trainer
+          image: your-registry/mlflow-trainer:latest
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow-service:5000
+      restartPolicy: Never
+  backoffLimit: 2

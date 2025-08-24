@@ -1,0 +1,36 @@
+# app/data.py
+import numpy as np
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+
+RNG = 42
+
+
+def make_tabular_classification(n_samples=2500, n_features=20, n_informative=10, n_classes=2):
+    X, y = make_classification(
+        n_samples=n_samples,
+        n_features=n_features,
+        n_informative=n_informative,
+        n_redundant=0,
+        n_repeated=0,
+        n_classes=n_classes,
+        random_state=RNG,
+        class_sep=1.2,
+        flip_y=0.01,
+    )
+    return X.astype('float32'), y.astype('int32')
+
+
+def make_sequence_dataset(n_samples=3000, time_steps=30, n_classes=2):
+    rng = np.random.default_rng(RNG)
+    X = np.zeros((n_samples, time_steps, 1), dtype='float32')
+    y = np.zeros((n_samples,), dtype='int32')
+    t = np.linspace(0, 2*np.pi, time_steps)
+    for i in range(n_samples):
+        cls = rng.integers(0, n_classes)
+        phase = 0.0 if cls == 0 else np.pi/3
+        noise_scale = 0.05 if cls == 0 else 0.15
+        seq = np.sin(t + phase) + rng.normal(0, noise_scale, size=time_steps)
+        X[i, :, 0] = seq.astype('float32')
+        y[i] = cls
+    return X, y
