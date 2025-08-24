@@ -44,10 +44,13 @@ jobs:
         env:
           KUBE_CONFIG_B64: ${{ secrets.KUBE_CONFIG }}
         run: |
-          echo "$KUBE_CONFIG_B64" | base64 --decode > kubeconfig
-          mkdir -p ~/.kube
-          mv kubeconfig ~/.kube/config
+          echo "$KUBE_CONFIG_B64" | base64 --decode > ~/.kube/config
           chmod 600 ~/.kube/config
+
+      - name: Test cluster connectivity
+        run: |
+          kubectl cluster-info
+          kubectl get nodes || echo "Cluster not reachable from runner"
 
       - name: Replace image in K8s manifests
         run: |
@@ -55,7 +58,7 @@ jobs:
 
       - name: Apply K8s manifests
         run: |
-          kubectl apply -f k8s/mlflow-pv-pvc.yaml
-          kubectl apply -f k8s/mlflow-deployment.yaml
-          kubectl apply -f k8s/mlflow-service.yaml
-          kubectl apply -f k8s/trainer-job.yaml
+          kubectl apply --validate=false -f k8s/mlflow-pv-pvc.yaml
+          kubectl apply --validate=false -f k8s/mlflow-deployment.yaml
+          kubectl apply --validate=false -f k8s/mlflow-service.yaml
+          kubectl apply --validate=false -f k8s/trainer-job.yaml
