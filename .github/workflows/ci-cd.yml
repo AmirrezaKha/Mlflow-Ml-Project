@@ -5,9 +5,6 @@ on:
     branches:
       - main
 
-env:
-  IMAGE_NAME: ${{ secrets.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/mlflow-trainer:latest
-
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
@@ -21,37 +18,52 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to registry
+      - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_HOST }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          registry: docker.io
+          username: your-dockerhub-username
+          password: your-dockerhub-password-or-token
 
       - name: Build and push image
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ${{ env.IMAGE_NAME }}
+          tags: docker.io/your-dockerhub-username/mlflow-trainer:latest
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: 'v1.29.0'
 
-      - name: Decode Kubeconfig
-        env:
-          KUBE_CONFIG_B64: ${{ secrets.KUBE_CONFIG }}
+      - name: Configure Kubeconfig
         run: |
-          echo "$KUBE_CONFIG_B64" | base64 --decode > kubeconfig
           mkdir -p ~/.kube
-          mv kubeconfig ~/.kube/config
+          echo "
+          apiVersion: v1
+          clusters:
+          - cluster:
+              server: https://<your-k8s-api-server>
+              certificate-authority-data: <base64-ca-cert>
+            name: my-cluster
+          contexts:
+          - context:
+              cluster: my-cluster
+              user: my-user
+            name: my-context
+          current-context: my-context
+          kind: Config
+          preferences: {}
+          users:
+          - name: my-user
+            user:
+              token: <your-k8s-bearer-token>
+          " > ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Replace image in K8s manifests
         run: |
-          # simple sed replace. Ensure your k8s/trainer-job.yaml uses {{IMAGE_PLACEHOLDER}}
-          sed -i "s|{{IMAGE_PLACEHOLDER}}|${{ env.IMAGE_NAME }}|g" k8s/trainer-job.yaml
+          sed -i "s|{{IMAGE_PLACEHOLDER}}|docker.io/your-dockerhub-username/mlflow-trainer:latest|g" k8s/trainer-job.yaml
 
       - name: Apply K8s manifests
         run: |
