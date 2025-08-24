@@ -18,52 +18,36 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         uses: docker/login-action@v2
         with:
-          registry: docker.io
-          username: your-dockerhub-username
-          password: your-dockerhub-password-or-token
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: docker.io/your-dockerhub-username/mlflow-trainer:latest
+          tags: ghcr.io/${{ github.repository_owner }}/mlflow-trainer:latest
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: 'v1.29.0'
 
-      - name: Configure Kubeconfig
+      - name: Decode Kubeconfig
+        env:
+          KUBE_CONFIG_B64: ${{ secrets.KUBE_CONFIG }}
         run: |
+          echo "$KUBE_CONFIG_B64" | base64 --decode > kubeconfig
           mkdir -p ~/.kube
-          echo "
-          apiVersion: v1
-          clusters:
-          - cluster:
-              server: https://<your-k8s-api-server>
-              certificate-authority-data: <base64-ca-cert>
-            name: my-cluster
-          contexts:
-          - context:
-              cluster: my-cluster
-              user: my-user
-            name: my-context
-          current-context: my-context
-          kind: Config
-          preferences: {}
-          users:
-          - name: my-user
-            user:
-              token: <your-k8s-bearer-token>
-          " > ~/.kube/config
+          mv kubeconfig ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Replace image in K8s manifests
         run: |
-          sed -i "s|{{IMAGE_PLACEHOLDER}}|docker.io/your-dockerhub-username/mlflow-trainer:latest|g" k8s/trainer-job.yaml
+          sed -i "s|{{IMAGE_PLACEHOLDER}}|ghcr.io/${{ github.repository_owner }}/mlflow-trainer:latest|g" k8s/trainer-job.yaml
 
       - name: Apply K8s manifests
         run: |
