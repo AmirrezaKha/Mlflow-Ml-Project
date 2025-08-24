@@ -18,22 +18,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to GHCR
+      - name: Log in to GHCR
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Normalize repo owner to lowercase
-        id: repo_owner
-        run: echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
-
       - name: Build and push image
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ghcr.io/${{ steps.repo_owner.outputs.owner_lc }}/mlflow-trainer:latest
+          tags: ghcr.io/${{ github.actor }}/mlflow-trainer:latest
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
@@ -51,7 +47,7 @@ jobs:
 
       - name: Replace image in K8s manifests
         run: |
-          sed -i "s|{{IMAGE_PLACEHOLDER}}|ghcr.io/${{ steps.repo_owner.outputs.owner_lc }}/mlflow-trainer:latest|g" k8s/trainer-job.yaml
+          sed -i "s|{{IMAGE_PLACEHOLDER}}|ghcr.io/${{ github.actor }}/mlflow-trainer:latest|g" k8s/trainer-job.yaml
 
       - name: Apply K8s manifests
         run: |
