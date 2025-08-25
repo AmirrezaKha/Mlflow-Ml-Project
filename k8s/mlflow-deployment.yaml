@@ -1,4 +1,3 @@
-# k8s/mlflow-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,6 +29,19 @@ spec:
           volumeMounts:
             - name: mlflow-data
               mountPath: /mlflow
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
       volumes:
         - name: mlflow-data
           emptyDir: {}
