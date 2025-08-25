@@ -1,3 +1,4 @@
+# k8s/mlflow-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,19 +15,12 @@ spec:
     spec:
       containers:
         - name: mlflow
-          image: cr.fly.dev/mlflow:latest # or build your own mlflow server image
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/amirrezakha/mlflow:latest
           ports:
             - containerPort: 5000
-          env:
-            - name: BACKEND_STORE_URI
-              value: sqlite:///mlflow.db
-            - name: ARTIFACT_ROOT
-              value: /mlflow/mlruns
           volumeMounts:
-            - mountPath: /mlflow
-              name: mlflow-pv
+            - name: mlflow-data
+              mountPath: /mlflow
       volumes:
-        - name: mlflow-pv
-          persistentVolumeClaim:
-            claimName: mlflow-pvc
+        - name: mlflow-data
+          emptyDir: {}

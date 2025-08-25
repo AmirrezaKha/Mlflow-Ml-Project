@@ -58,10 +58,9 @@ jobs:
         run: |
           sed -i "s|{{IMAGE_PLACEHOLDER}}|ghcr.io/${{ steps.lowername.outputs.username_lc }}/mlflow-trainer:latest|g" k8s/trainer-job.yaml
 
-      # 10. Apply Kubernetes manifests
+      # 10. Apply Kubernetes manifests (no PVC in Kind)
       - name: Apply K8s manifests
         run: |
-          kubectl apply -f k8s/mlflow-pv-pvc.yaml
           kubectl apply -f k8s/mlflow-deployment.yaml
           kubectl apply -f k8s/mlflow-service.yaml
 
@@ -79,13 +78,17 @@ jobs:
 
       # 14. Debug - Describe trainer job
       - name: Debug - Describe trainer job
-        run: kubectl describe job trainer-job
+        run: kubectl describe job trainer-job || true
 
       # 15. Debug - Trainer pod logs
       - name: Debug - Trainer pod logs
         run: |
-          POD=$(kubectl get pods --selector=job-name=trainer-job -o jsonpath='{.items[0].metadata.name}')
-          kubectl logs $POD || true
+          POD=$(kubectl get pods --selector=job-name=trainer-job -o jsonpath='{.items[0].metadata.name}' || echo "")
+          if [ -n "$POD" ]; then
+            kubectl logs "$POD" || true
+          else
+            echo "No trainer pod found"
+          fi
 
       # 16. Wait for trainer job completion
       - name: Wait for trainer job completion
