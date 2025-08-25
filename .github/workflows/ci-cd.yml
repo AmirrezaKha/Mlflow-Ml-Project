@@ -64,9 +64,24 @@ jobs:
           kubectl apply -f k8s/mlflow-deployment.yaml
           kubectl apply -f k8s/mlflow-service.yaml
 
+      # 🔍 Debug MLflow pod before rollout
+      - name: Debug - List pods
+        run: kubectl get pods -o wide
+
+      - name: Debug - Describe MLflow pod
+        run: |
+          POD=$(kubectl get pods -l app=mlflow -o jsonpath='{.items[0].metadata.name}' || echo "")
+          if [ -n "$POD" ]; then
+            kubectl describe pod "$POD"
+            kubectl logs "$POD" || true
+          else
+            echo "No mlflow pod found"
+          fi
+
       # 11. Wait for MLflow server to be ready
       - name: Wait for MLflow readiness
         run: kubectl rollout status deployment/mlflow --timeout=300s
+
 
       # 12. Run Trainer Job
       - name: Apply Trainer Job

@@ -18,6 +18,15 @@ spec:
           image: ghcr.io/amirrezakha/mlflow:latest
           ports:
             - containerPort: 5000
+          command: ["mlflow"]
+          args:
+            [
+              "server",
+              "--host", "0.0.0.0",
+              "--port", "5000",
+              "--backend-store-uri", "sqlite:///mlflow.db",
+              "--default-artifact-root", "/mlflow"
+            ]
           volumeMounts:
             - name: mlflow-data
               mountPath: /mlflow
