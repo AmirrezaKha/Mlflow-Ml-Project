@@ -29,7 +29,7 @@ jobs:
 
       - name: Build MLflow Docker image
         run: |
-          docker build -t mlflow-app:latest ./app
+          docker build -t mlflow-app:latest .
           kind load docker-image mlflow-app:latest --name mlflow-cluster
 
       - name: Apply Kubernetes resources
