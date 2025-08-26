@@ -32,6 +32,7 @@ def make_sequence_dataset(n_samples=3000, time_steps=30, n_classes=2):
     X = np.zeros((n_samples, time_steps, 1), dtype='float32')
     y = np.zeros((n_samples,), dtype='int32')
     t = np.linspace(0, 2*np.pi, time_steps)
+    
     for i in range(n_samples):
         cls = rng.integers(0, n_classes)
         phase = 0.0 if cls == 0 else np.pi/3
@@ -39,4 +40,9 @@ def make_sequence_dataset(n_samples=3000, time_steps=30, n_classes=2):
         seq = np.sin(t + phase) + rng.normal(0, noise_scale, size=time_steps)
         X[i, :, 0] = seq.astype('float32')
         y[i] = cls
-    return X, y
+
+    # Split: train 64%, val 16%, test 20%
+    X_train_full, X_test, y_train_full, y_test = train_test_split(X, y, test_size=0.2, random_state=RNG, stratify=y)
+    X_train, X_val, y_train, y_val = train_test_split(X_train_full, y_train_full, test_size=0.2, random_state=RNG, stratify=y_train_full)
+
+    return X_train, X_val, X_test, y_train, y_val, y_test

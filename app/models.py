@@ -37,7 +37,7 @@ def build_fnn(
 
     model = keras.Model(inputs, outputs)
     model.compile(
-        optimizer=optimizers.Adam(learning_rate=lr),
+        optimizer=optimizers.Adam(learning_rate=0.001),
         loss='sparse_categorical_crossentropy',
         metrics=['accuracy']
     )
