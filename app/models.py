@@ -1,9 +1,9 @@
 # app/models.py
-from typing import List
+from typing import List, Union
 from sklearn.ensemble import RandomForestClassifier
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
+from tensorflow.keras import layers, optimizers
 
 
 def build_random_forest(params):
@@ -17,7 +17,16 @@ def build_random_forest(params):
     )
 
 
-def build_fnn(input_dim: int, hidden_units: List[int], dropout: float, num_classes: int = 2):
+def build_fnn(
+    input_dim: int,
+    hidden_units: Union[int, List[int]],
+    dropout: float = 0.0,
+    num_classes: int = 2
+):
+    # Ensure hidden_units is a list
+    if isinstance(hidden_units, int):
+        hidden_units = [hidden_units]
+
     inputs = keras.Input(shape=(input_dim,))
     x = inputs
     for h in hidden_units:
@@ -25,12 +34,24 @@ def build_fnn(input_dim: int, hidden_units: List[int], dropout: float, num_class
         if dropout > 0:
             x = layers.Dropout(dropout)(x)
     outputs = layers.Dense(num_classes, activation='softmax')(x)
+
     model = keras.Model(inputs, outputs)
-    model.compile(optimizer=keras.optimizers.Adam(), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.compile(
+        optimizer=optimizers.Adam(learning_rate=lr),
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
     return model
 
 
-def build_lstm(time_steps: int, n_features: int, lstm_units: int, dense_units: int, dropout: float, num_classes: int = 2):
+def build_lstm(
+    time_steps: int,
+    n_features: int,
+    lstm_units: int,
+    dense_units: int,
+    dropout: float,
+    num_classes: int = 2
+):
     inputs = keras.Input(shape=(time_steps, n_features))
     x = layers.LSTM(lstm_units, return_sequences=False)(inputs)
     if dropout > 0:
@@ -38,6 +59,11 @@ def build_lstm(time_steps: int, n_features: int, lstm_units: int, dense_units: i
     if dense_units > 0:
         x = layers.Dense(dense_units, activation='relu')(x)
     outputs = layers.Dense(num_classes, activation='softmax')(x)
+
     model = keras.Model(inputs, outputs)
-    model.compile(optimizer=keras.optimizers.Adam(), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.compile(
+        optimizer=optimizers.Adam(),
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
     return model

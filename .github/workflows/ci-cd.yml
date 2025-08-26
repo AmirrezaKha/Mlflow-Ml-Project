@@ -32,11 +32,15 @@ jobs:
           docker build -t mlflow-app:latest .
           kind load docker-image mlflow-app:latest --name mlflow-cluster
 
+      - name: Create mlflow namespace
+        run: |
+          kubectl create namespace mlflow || echo "Namespace already exists"
+
       - name: Apply Kubernetes resources
         run: |
-          kubectl apply -f k8s/mlflow-deployment.yaml
-          kubectl apply -f k8s/mlflow-service.yaml
-          kubectl apply -f k8s/mlflow-job.yaml
+          kubectl apply -f k8s/mlflow-deployment.yaml -n mlflow
+          kubectl apply -f k8s/mlflow-service.yaml -n mlflow
+          kubectl apply -f k8s/mlflow-job.yaml -n mlflow
 
       - name: Wait for MLflow Job pod
         run: |
