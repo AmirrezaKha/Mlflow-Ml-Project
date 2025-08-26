@@ -14,11 +14,9 @@ spec:
       labels:
         app: mlflow
     spec:
-      imagePullSecrets:
-        - name: ghcr-secret
       containers:
         - name: mlflow
-          image: ghcr.io/amirreyakha/mlflow:latest 
+          image: ghcr.io/YOUR_GITHUB_USERNAME/mlflow:latest
           ports:
             - containerPort: 5000
           command: ["mlflow"]
@@ -29,21 +27,19 @@ spec:
             - --port
             - "5000"
             - --backend-store-uri
-            - sqlite:////mlflow/mlflow.db
+            - sqlite:///mlflow.db
             - --default-artifact-root
             - /mlflow
           volumeMounts:
             - name: mlflow-data
               mountPath: /mlflow
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 5000
             initialDelaySeconds: 15
             periodSeconds: 10

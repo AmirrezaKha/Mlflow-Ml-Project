@@ -5,7 +5,7 @@ from pathlib import Path
 RNG_SEED = 42
 BASE_DIR = Path(__file__).resolve().parents[1]
 ARTIFACTS_DIR = BASE_DIR / "artifacts"
-MLFLOW_TRACKING_URI = "http://mlflow-service:5000" # points to k8s service
+MLFLOW_TRACKING_URI = "http://mlflow-service:5000"
 EXPERIMENT_NAME = "RF_vs_FNN_vs_LSTM_OOP"
 
 
