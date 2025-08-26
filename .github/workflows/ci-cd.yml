@@ -1,85 +1,43 @@
-name: CI/CD Build, Push, Deploy
+name: MLflow CI/CD
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  build_and_deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v2
 
-      - name: Log in to GHCR
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Set lowercase username
-        id: lowername
-        run: echo "username_lc=${GITHUB_ACTOR,,}" >> $GITHUB_OUTPUT
-
-      - name: Build and push image (dual tag)
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: |
-            ghcr.io/${{ steps.lowername.outputs.username_lc }}/mlflow:latest
-            ghcr.io/${{ steps.lowername.outputs.username_lc }}/mlflow-trainer:latest
-
-      - name: Set up Kind
-        uses: engineerd/setup-kind@v0.5.0
-        with:
-          version: v0.20.0
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.29.0'
-
-      - name: Apply K8s manifests
+      - name: Build Docker image
         run: |
-          sed -i "s|YOUR_GITHUB_USERNAME|${{ steps.lowername.outputs.username_lc }}|g" k8s/*.yaml
-          kubectl apply -f k8s/mlflow-deployment.yaml
-          kubectl apply -f k8s/mlflow-service.yaml
+          docker build -t ${{ secrets.DOCKER_IMAGE }} ./app
 
-      - name: Debug - List pods
-        run: kubectl get pods -o wide
-
-      - name: Debug - Describe MLflow pod
+      - name: Push Docker image
         run: |
-          POD=$(kubectl get pods -l app=mlflow -o jsonpath='{.items[0].metadata.name}' || echo "")
-          if [ -n "$POD" ]; then
-            kubectl describe pod "$POD"
-            kubectl logs "$POD" || true
-          else
-            echo "No mlflow pod found"
-          fi
+          docker push ${{ secrets.DOCKER_IMAGE }}
 
-      - name: Wait for MLflow readiness
-        run: kubectl rollout status deployment/mlflow --timeout=300s
-
-      - name: Apply Trainer Job
-        run: kubectl apply -f k8s/trainer-job.yaml
-
-      - name: Wait for trainer job completion
-        run: kubectl wait --for=condition=complete --timeout=600s job/trainer-job
-
-      - name: Debug - Trainer pod logs
+      - name: Set up Kubeconfig
         run: |
-          POD=$(kubectl get pods --selector=job-name=trainer-job -o jsonpath='{.items[0].metadata.name}' || echo "")
-          if [ -n "$POD" ]; then
-            kubectl logs "$POD" || true
-          else
-            echo "No trainer pod found"
-          fi
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+
+      - name: Apply MLflow Job YAML
+        run: |
+          kubectl delete job mlflow-job -n mlflow --ignore-not-found
+          kubectl apply -f k8s/mlflow-job.yaml
+
+      - name: Verify pods
+        run: kubectl get pods -n mlflow
