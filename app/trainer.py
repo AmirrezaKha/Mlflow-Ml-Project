@@ -84,8 +84,8 @@ class Trainer:
 
         # Flatten param grid into individual combinations
         param_grid = [
-            {'hidden_units': [64, 128], 'dropout': [0.2, 0.3], 'lr': [1e-3, 1e-4], 'batch_size': [32, 64]},
-            {'hidden_units': [32, 64], 'dropout': [0.1, 0.2], 'lr': [1e-3], 'batch_size': [16, 32]},
+            {'hidden_units': [64, 128], 'dropout': [0.2, 0.3], 'batch_size': [32, 64]},
+            {'hidden_units': [32, 64], 'dropout': [0.1, 0.2], 'batch_size': [16, 32]},
         ]
 
         combos = []
@@ -108,8 +108,7 @@ class Trainer:
                     model = build_fnn(
                         input_dim=X.shape[1],
                         hidden_units=params['hidden_units'],
-                        dropout=params['dropout'],
-                        lr=params['lr']
+                        dropout=params['dropout']
                     )
 
                     model.fit(
@@ -134,8 +133,7 @@ class Trainer:
             best_model = build_fnn(
                 input_dim=X.shape[1],
                 hidden_units=best['params']['hidden_units'],
-                dropout=best['params']['dropout'],
-                lr=best['params']['lr']
+                dropout=best['params']['dropout']
             )
             best_model.fit(
                 np.concatenate([X_train, X_val]),
@@ -158,8 +156,8 @@ class Trainer:
         )
 
         param_grid = [
-            {'lstm_units': 32, 'dense_units': 16, 'dropout': 0.2, 'batch_size': 32, 'lr': 1e-3},
-            {'lstm_units': 64, 'dense_units': 32, 'dropout': 0.3, 'batch_size': 64, 'lr': 1e-3},
+            {'lstm_units': 32, 'dense_units': 16, 'dropout': 0.2, 'batch_size': 32},
+            {'lstm_units': 64, 'dense_units': 32, 'dropout': 0.3, 'batch_size': 64},
         ]
 
         with mlflow.start_run(run_name='LSTM_parent'):

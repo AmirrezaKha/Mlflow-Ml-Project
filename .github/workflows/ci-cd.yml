@@ -11,47 +11,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Step 3: Set up kind (official action)
-      - name: Set up kind
-        uses: kind-ci/setup-kind@v0.11.1
-
-      # Step 4: Create kind cluster
-      - name: Create kind cluster
+      - name: Install kind
         run: |
-          kind create cluster --name mlflow-cluster
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+          kind version
 
-      # Step 5: Build Docker image for MLflow
+      - name: Create kind cluster
+        run: kind create cluster --name mlflow-cluster
+
       - name: Build MLflow Docker image
         run: |
           docker build -t mlflow-app:latest ./app
           kind load docker-image mlflow-app:latest --name mlflow-cluster
 
-      # Step 6: Apply Kubernetes manifests
       - name: Apply Kubernetes resources
         run: |
           kubectl apply -f k8s/mlflow-deployment.yaml
           kubectl apply -f k8s/mlflow-service.yaml
           kubectl apply -f k8s/mlflow-job.yaml
 
-      # Step 7: Wait for MLflow Job pods to be ready
       - name: Wait for MLflow Job pod
         run: |
           kubectl wait --for=condition=ready pod -l job-name=mlflow-job -n mlflow --timeout=180s
 
-      # Step 8: Get logs from MLflow Job
       - name: Get logs from MLflow Job
         run: |
           POD=$(kubectl get pods -n mlflow -l job-name=mlflow-job -o jsonpath='{.items[0].metadata.name}')
           kubectl logs $POD -n mlflow -f
 
-      # Step 9: Verify all pods in mlflow namespace
       - name: Verify all MLflow pods
         run: kubectl get pods -n mlflow
