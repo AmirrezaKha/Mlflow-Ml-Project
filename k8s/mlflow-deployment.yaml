@@ -15,10 +15,10 @@ spec:
         app: mlflow
     spec:
       imagePullSecrets:
-        - name: ghcr-secret   # ensures it can pull from GHCR
+        - name: ghcr-secret
       containers:
         - name: mlflow
-          image: ghcr.io/YOUR_USERNAME/mlflow:latest   # update with your correct repo
+          image: ghcr.io/amirreyakha/mlflow:latest 
           ports:
             - containerPort: 5000
           command: ["mlflow"]
