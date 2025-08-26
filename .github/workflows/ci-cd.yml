@@ -1,4 +1,4 @@
-name: MLflow CI/CD (Local Cluster)
+name: MLflow CI/CD (Docker Desktop)
 
 on:
   push:
@@ -13,18 +13,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Build Docker image locally
         run: |
-          docker build -t mlflow-app:latest .
-
-      - name: Load Docker image into Kubernetes
-        run: |
-          # If using kind or k3d, load image into cluster
-          # For example, if using kind:
-          kind load docker-image mlflow-app:latest --name mlflow-cluster
+          docker build -t mlflow-app:latest ./app
 
       - name: Set up kubeconfig
         run: |
@@ -39,7 +30,7 @@ jobs:
       - name: Verify pods
         run: kubectl get pods -n mlflow
 
-      - name: Check logs for one pod
+      - name: Check logs for first pod
         run: |
           POD=$(kubectl get pods -n mlflow -l job-name=mlflow-job -o jsonpath='{.items[0].metadata.name}')
           kubectl logs $POD -n mlflow -f
