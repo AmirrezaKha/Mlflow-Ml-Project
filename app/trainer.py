@@ -5,10 +5,10 @@ import mlflow.sklearn
 import mlflow.tensorflow
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from .config import EXPERIMENT_NAME, MLFLOW_TRACKING_URI, RF_TRIALS, FNN_TRIALS, LSTM_TRIALS
-from .models import build_random_forest, build_fnn, build_lstm
-from .data import make_tabular_classification, make_sequence_dataset
-from .utils import log_common_artifacts, set_seeds
+from config import EXPERIMENT_NAME, MLFLOW_TRACKING_URI, RF_TRIALS, FNN_TRIALS, LSTM_TRIALS
+from models import build_random_forest, build_fnn, build_lstm
+from data import make_tabular_classification, make_sequence_dataset
+from utils import log_common_artifacts, set_seeds
 
 
 class Trainer:

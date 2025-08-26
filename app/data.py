@@ -18,7 +18,13 @@ def make_tabular_classification(n_samples=2500, n_features=20, n_informative=10,
         class_sep=1.2,
         flip_y=0.01,
     )
-    return X.astype('float32'), y.astype('int32')
+
+    # split into train/val/test
+    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.4, random_state=RNG)
+    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=RNG)
+
+    return X_train.astype('float32'), X_val.astype('float32'), X_test.astype('float32'), \
+           y_train.astype('int32'), y_val.astype('int32'), y_test.astype('int32')
 
 
 def make_sequence_dataset(n_samples=3000, time_steps=30, n_classes=2):

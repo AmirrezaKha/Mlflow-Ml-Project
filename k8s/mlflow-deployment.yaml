@@ -2,8 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mlflow
-  labels:
-    app: mlflow
+  namespace: mlflow
 spec:
   replicas: 1
   selector:
@@ -16,33 +15,7 @@ spec:
     spec:
       containers:
         - name: mlflow
-          image: ghcr.io/amirrezakha/mlflow:latest
+          image: mlflow-app:latest
+          command: ["mlflow", "ui", "--host", "0.0.0.0", "--port", "5000"]
           ports:
             - containerPort: 5000
-          command: ["mlflow"]
-          args:
-            - server
-            - --host
-            - 0.0.0.0
-            - --port
-            - "5000"
-            - --backend-store-uri
-            - sqlite:///mlflow.db
-            - --default-artifact-root
-            - /mlflow
-          volumeMounts:
-            - name: mlflow-data
-              mountPath: /mlflow
-          readinessProbe:
-            tcpSocket:
-              port: 5000
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          livenessProbe:
-            tcpSocket:
-              port: 5000
-            initialDelaySeconds: 15
-            periodSeconds: 10
-      volumes:
-        - name: mlflow-data
-          emptyDir: {}

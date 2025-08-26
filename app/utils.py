@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, classification_report
 from pathlib import Path
 
-from .config import ARTIFACTS_DIR
+from config import ARTIFACTS_DIR
 
 
 def ensure_dir(path):

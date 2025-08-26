@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mlflow-job
+  namespace: mlflow
+spec:
+  completions: 5        # number of parallel runs
+  parallelism: 5        # run 5 pods in parallel
+  template:
+    metadata:
+      name: mlflow-job
+    spec:
+      containers:
+      - name: mlflow-task
+        image: mlflow-app:latest
+        imagePullPolicy: Never
+        command: ["python", "main.py"]
+        env:
+          - name: MLFLOW_TRACKING_URI
+            value: "http://mlflow-service:5000"
+      restartPolicy: Never

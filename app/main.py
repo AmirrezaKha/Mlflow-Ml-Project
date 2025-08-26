@@ -1,10 +1,17 @@
 # main.py
 import argparse
-from app.trainer import Trainer
-from app.data import make_tabular_classification, make_sequence_dataset
-from app.utils import set_seeds
-from app.config import MLFLOW_TRACKING_URI
+import os
 import numpy as np
+from trainer import Trainer
+from data import make_tabular_classification, make_sequence_dataset
+from utils import set_seeds
+from config import MLFLOW_TRACKING_URI
+
+# Use environment variable first; fallback to config
+MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI")
+if MLFLOW_TRACKING_URI is None:
+    from app.config import MLFLOW_TRACKING_URI as DEFAULT_URI
+    MLFLOW_TRACKING_URI = DEFAULT_URI
 
 def main():
     parser = argparse.ArgumentParser()

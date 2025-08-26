@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mlflow-job
+  namespace: mlflow
+spec:
+  completions: 5       
+  parallelism: 5      
+  template:
+    metadata:
+      name: mlflow-job
+    spec:
+      containers:
+      - name: mlflow-task
+        image: mlflow-app:latest
+        command: ["python", "main.py"]
+        envFrom:
+        - configMapRef:
+            name: mlflow-config
+      restartPolicy: Never
