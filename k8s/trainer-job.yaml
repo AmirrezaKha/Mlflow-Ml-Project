@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: trainer
-          image: ghcr.io/amirreza/mlflow-trainer:latest
+          image: ghcr.io/amirrezakha/mlflow-trainer:latest
           env:
             - name: MLFLOW_TRACKING_URI
               value: http://mlflow-service:5000

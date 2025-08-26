@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: mlflow
-          image: ghcr.io/YOUR_GITHUB_USERNAME/mlflow:latest
+          image: ghcr.io/amirrezakha/mlflow:latest
           ports:
             - containerPort: 5000
           command: ["mlflow"]
