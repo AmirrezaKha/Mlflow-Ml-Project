@@ -22,23 +22,26 @@ def main():
 
     trainer = Trainer(tracking_uri=MLFLOW_TRACKING_URI)
 
-    if args.model == 'rf':
-        X_train, X_val, X_test, y_train, y_val, y_test = make_tabular_classification()
-        X = np.concatenate([X_train, X_val, X_test])
-        y = np.concatenate([y_train, y_val, y_test])
-        trainer.tune_random_forest(X, y)
+    models = ['rf', 'fnn', 'lstm']
 
-    elif args.model == 'fnn':
-        X_train, X_val, X_test, y_train, y_val, y_test = make_tabular_classification()
-        X = np.concatenate([X_train, X_val, X_test])
-        y = np.concatenate([y_train, y_val, y_test])
-        trainer.tune_fnn(X, y)
+    for model in models:
+        print(f"Training {model}...")
+        if model == 'rf':
+            X_train, X_val, X_test, y_train, y_val, y_test = make_tabular_classification()
+            X = np.concatenate([X_train, X_val, X_test])
+            y = np.concatenate([y_train, y_val, y_test])
+            trainer.tune_random_forest(X, y)
+        elif model == 'fnn':
+            X_train, X_val, X_test, y_train, y_val, y_test = make_tabular_classification()
+            X = np.concatenate([X_train, X_val, X_test])
+            y = np.concatenate([y_train, y_val, y_test])
+            trainer.tune_fnn(X, y)
+        elif model == 'lstm':
+            X_train, X_val, X_test, y_train, y_val, y_test = make_sequence_dataset()
+            X = np.concatenate([X_train, X_val, X_test])
+            y = np.concatenate([y_train, y_val, y_test])
+            trainer.tune_lstm(X, y)
 
-    elif args.model == 'lstm':
-        X_train, X_val, X_test, y_train, y_val, y_test = make_sequence_dataset()
-        X = np.concatenate([X_train, X_val, X_test])
-        y = np.concatenate([y_train, y_val, y_test])
-        trainer.tune_lstm(X, y)
 
 if __name__ == "__main__":
     main()

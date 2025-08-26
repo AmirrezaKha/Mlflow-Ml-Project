@@ -15,7 +15,7 @@ jobs:
 
       - name: Build Docker image locally
         run: |
-          docker build -t mlflow-app:latest ./app
+          docker build -t mlflow-app:latest .
 
       - name: Set up kubeconfig
         run: |

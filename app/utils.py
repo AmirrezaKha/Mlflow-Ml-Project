@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, classification_report
 from pathlib import Path
+import mlflow
 
 from config import ARTIFACTS_DIR
 
@@ -56,4 +57,7 @@ def log_common_artifacts(run, y_true, y_pred, artifacts_subdir, class_names):
     }
     with open(path / "metrics_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
+
+    mlflow.log_artifacts(str(path), artifact_path=artifacts_subdir)
+
     return path
